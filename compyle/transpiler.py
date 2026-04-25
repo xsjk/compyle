@@ -256,10 +256,11 @@ class Transpiler(object):
             func, self.backend
         )
         if implicit and not get_config().suppress_warnings:
-            msg = ('Warning: the following symbols are implicitly defined.\n'
+            msg = ('Warning: the following symbols are implicitly defined '
+                   'in function "%s".\n'
                    '  %s\n'
                    'You may want to explicitly declare/define them.'
-                   % implicit)
+                   % (func.__name__, implicit))
             print(msg)
 
         self._handle_externs(externs)
