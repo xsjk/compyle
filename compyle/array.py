@@ -97,6 +97,22 @@ minmax_tpl = """
 
 minmax_operator_tpl = """
 
+    __device__ ${dtype}()
+    {
+    }
+
+    __device__ ${dtype}(${dtype} const volatile &src)
+    {
+        % for prop in prop_names:
+        % if not only_max:
+        this->cur_min_${prop} = src.cur_min_${prop};
+        % endif
+        % if not only_min:
+        this->cur_max_${prop} = src.cur_max_${prop};
+        % endif
+        % endfor
+    }
+
     __device__ ${dtype} volatile &operator=(
         ${dtype} const &src) volatile
     {
