@@ -1396,7 +1396,8 @@ class _GenericScanKernelBase(object):
 
 generic_scan_kernel_cache = WriteOncePersistentDict(
     "pycuda-generated-scan-kernel-cache-v1",
-    key_builder=_NumpyTypesKeyBuilder())
+    key_builder=_NumpyTypesKeyBuilder(),
+    safe_sync=False)
 
 
 class GenericScanKernel(_GenericScanKernelBase):
