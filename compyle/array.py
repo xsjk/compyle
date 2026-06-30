@@ -303,7 +303,8 @@ def to_device(array, backend='cython'):
         out = gpuarray.to_device(get_queue(), array)
     elif backend == 'cuda':
         import pycuda.gpuarray as gpuarray
-        out = gpuarray.to_gpu(array)
+        from .cuda import get_cuda_allocator
+        out = gpuarray.to_gpu(array, allocator=get_cuda_allocator())
     return wrap_array(out, backend)
 
 
@@ -341,7 +342,8 @@ def empty(n, dtype, backend='cython'):
         out = gpuarray.empty(get_queue(), n, dtype)
     elif backend == 'cuda':
         import pycuda.gpuarray as gpuarray
-        out = gpuarray.empty(n, dtype)
+        from .cuda import get_cuda_allocator
+        out = gpuarray.empty(n, dtype, allocator=get_cuda_allocator())
     else:
         out = np.empty(n, dtype=dtype)
     return wrap_array(out, backend)
@@ -358,7 +360,8 @@ def zeros(n, dtype, backend='cython'):
         out = gpuarray.zeros(get_queue(), n, dtype)
     elif backend == 'cuda':
         import pycuda.gpuarray as gpuarray
-        out = gpuarray.zeros(n, dtype)
+        from .cuda import get_cuda_allocator
+        out = gpuarray.zeros(n, dtype, allocator=get_cuda_allocator())
     else:
         out = np.zeros(n, dtype=dtype)
     return wrap_array(out, backend)
