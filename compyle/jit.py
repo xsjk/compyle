@@ -370,11 +370,12 @@ class ElementwiseJIT(parallel.ElementwiseBase):
             c_func(*c_args, **kw)
             self.queue.finish()
         elif self.backend == 'cuda':
-            import pycuda.driver as drv
-            event = drv.Event()
             c_func(*c_args, **kw)
-            event.record()
-            event.synchronize()
+            if get_config().profile:
+                import pycuda.driver as drv
+                event = drv.Event()
+                event.record()
+                event.synchronize()
 
 
 class ReductionJIT(parallel.ReductionBase):
@@ -449,11 +450,12 @@ class ReductionJIT(parallel.ReductionBase):
             self.queue.finish()
             return result.get()
         elif self.backend == 'cuda':
-            import pycuda.driver as drv
-            event = drv.Event()
             result = c_func(*c_args, **kw)
-            event.record()
-            event.synchronize()
+            if get_config().profile:
+                import pycuda.driver as drv
+                event = drv.Event()
+                event.record()
+                event.synchronize()
             return result.get()
 
 
@@ -569,8 +571,9 @@ class ScanJIT(parallel.ScanBase):
             c_func(*[c_args_dict[k] for k in output_arg_keys])
             self.queue.finish()
         elif self.backend == 'cuda':
-            import pycuda.driver as drv
-            event = drv.Event()
             c_func(*[c_args_dict[k] for k in output_arg_keys])
-            event.record()
-            event.synchronize()
+            if get_config().profile:
+                import pycuda.driver as drv
+                event = drv.Event()
+                event.record()
+                event.synchronize()
