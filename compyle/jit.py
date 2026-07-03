@@ -8,6 +8,7 @@ import warnings
 import time
 from pytools import memoize
 from .config import get_config
+from .ast_utils import get_string_value
 from .cython_generator import CythonGenerator
 from .transpiler import Transpiler, BUILTINS
 from .types import (dtype_to_ctype, get_declare_info,
@@ -198,15 +199,16 @@ class AnnotationHelper(ast.NodeVisitor):
         warnings.warn(msg)
 
     def visit_declare(self, node):
-        if not isinstance(node.args[0], ast.Str):
+        type_str = get_string_value(node.args[0])
+        if type_str is None:
             self.error("Argument to declare should be a string.", node)
-        type_str = node.args[0].s
         return self.get_declare_type(type_str)
 
     def visit_cast(self, node):
-        if not isinstance(node.args[1], ast.Str):
+        type_str = get_string_value(node.args[1])
+        if type_str is None:
             self.error("Cast type should be a string.", node)
-        return node.args[1].s
+        return type_str
 
     def visit_address(self, node):
         base_type = self.visit(node.args[0])
@@ -293,6 +295,11 @@ class AnnotationHelper(ast.NodeVisitor):
 
     def visit_Num(self, node):
         return get_ctype_from_arg(node.n)
+
+    def visit_Constant(self, node):
+        if isinstance(node.value, str):
+            return None
+        return get_ctype_from_arg(node.value)
 
     def visit_UnaryOp(self, node):
         return self.visit(node.operand)
