@@ -321,7 +321,7 @@ class CConverter(ast.NodeVisitor):
         self._declarations = None
         return code
 
-    def render_atomic(self, func, arg):
+    def render_atomic(self, func, *args):
         raise NotImplementedError(
             "Atomics only supported by CUDA/OpenCL backends")
 
@@ -394,7 +394,9 @@ class CConverter(ast.NodeVisitor):
             if node.func.id == 'address':
                 return '(&%s)' % self.visit(node.args[0])
             elif 'atomic' in node.func.id:
-                return self.render_atomic(node.func.id, node.args[0])
+                assert not node.keywords, (
+                    "Atomic operations require positional arguments")
+                return self.render_atomic(node.func.id, *node.args)
             elif node.func.id == 'cast':
                 type_str = get_string_value(node.args[1])
                 if type_str is None:
@@ -800,7 +802,9 @@ class OpenCLConverter(CConverter):
     def _get_self_type(self):
         return KnownType('GLOBAL_MEM %s*' % self._class_name)
 
-    def render_atomic(self, func, arg):
+    def render_atomic(self, func, *args):
+        assert len(args) == 1
+        arg = args[0]
         if func == 'atomic_inc':
             return 'atomic_inc(&%s)' % self.visit(arg)
         elif func == 'atomic_dec':
@@ -853,11 +857,16 @@ class CUDAConverter(OpenCLConverter):
             local_decl += '\n'
         return local_decl
 
-    def render_atomic(self, func, arg):
+    def render_atomic(self, func, *args):
+        if func == 'atomic_min':
+            assert len(args) == 2
+            return 'atomicMin(&%s, %s)' % tuple(self.visit(arg) for arg in args)
+        assert len(args) == 1
+        arg = args[0]
         if func == 'atomic_inc':
             return 'atomicAdd(&%s, 1)' % self.visit(arg)
         elif func == 'atomic_dec':
             return 'atomicAdd(&%s, -1)' % self.visit(arg)
         else:
             raise NotImplementedError(
-                "Only atomic_inc, atomic_dec supported right now")
+                "Only atomic_inc, atomic_dec, atomic_min supported right now")

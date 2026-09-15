@@ -330,6 +330,22 @@ class _atomic_dec(Extern):
         pass
 
 
+class _atomic_min(Extern):
+    """CUDA atomic minimum on an integer lvalue, returning its previous value.
+
+    Pass the variable itself, for example ``atomic_min(self.ready, -1)``
+    or ``atomic_min(votes[i], value)``. The CUDA converter takes its address.
+    This device-scoped atomic does not synchronize other memory accesses.
+    """
+
+    def code(self, backend):
+        assert backend == 'cuda', "atomic_min requires the CUDA backend"
+        return ''
+
+    def __call__(self, target, value):
+        raise NotImplementedError("atomic_min requires compiled CUDA code")
+
+
 class _cast(Extern):
     def code(self, backend):
         return ''
@@ -344,6 +360,7 @@ nogil = _nogil()
 address = _address()
 atomic_inc = _atomic_inc()
 atomic_dec = _atomic_dec()
+atomic_min = _atomic_min()
 cast = _cast()
 
 
