@@ -734,14 +734,18 @@ def take_elwise(i, indices, ary, out_ary):
     out_ary[i] = ary[indices[i]]
 
 
+@memoize
+def _get_take_kernel(backend):
+    return Elementwise(take_elwise, backend=backend)
+
+
 def take(ary, indices, backend=None, out=None):
-    import compyle.parallel as parallel
     if backend is None:
         backend = ary.backend
     if out is None:
         out = empty(indices.length, ary.dtype, backend=backend)
     if backend == 'opencl' or backend == 'cuda':
-        take_knl = parallel.Elementwise(take_elwise, backend=backend)
+        take_knl = _get_take_kernel(backend)
         take_knl(indices, ary, out)
     elif backend == 'cython':
         np.take(ary.dev, indices.dev, out=out.dev)
